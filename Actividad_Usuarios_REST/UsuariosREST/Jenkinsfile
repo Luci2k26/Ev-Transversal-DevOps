@@ -56,7 +56,7 @@ pipeline {
                     ],
                     userRemoteConfigs: [[
                         credentialsId: 'EvTvWH',
-                        url: 'https://github.com/Luci2k26/VehiculosRest'
+                        url: 'https://github.com/Luci2k26/Ev-Transversal-DevOps'
                     ]]
                 )
 
