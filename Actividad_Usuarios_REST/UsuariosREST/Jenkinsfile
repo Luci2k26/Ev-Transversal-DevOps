@@ -190,116 +190,120 @@ pipeline {
 
         stage('Build Usuarios WAR Artifact') {
             steps {
-                sh '''
-                    set -eu
+                dir('nombre-de-tu-carpeta') {
+                    sh '''
+                        set -eu
 
-                    echo "Compilando aplicación Usuarios REST..."
+                        echo "Compilando aplicación Usuarios REST..."
 
-                    mvn clean package -DskipTests
+                        mvn clean package -DskipTests
 
-                    echo "Validando artefacto WAR..."
+                        echo "Validando artefacto WAR..."
 
-                    if [ ! -f "target/$WAR_FILE" ]; then
-                        echo "ERROR: No se generó target/$WAR_FILE"
+                        if [ ! -f "target/$WAR_FILE" ]; then
+                            echo "ERROR: No se generó target/$WAR_FILE"
 
-                        echo "Contenido del directorio target:"
-                        ls -lah target || true
+                            echo "Contenido del directorio target:"
+                            ls -lah target || true
 
-                        exit 1
-                    fi
+                            exit 1
+                        fi
 
-                    ls -lh "target/$WAR_FILE"
+                        ls -lh "target/$WAR_FILE"
 
-                    echo "Validando que el archivo no esté vacío..."
+                        echo "Validando que el archivo no esté vacío..."
 
-                    if [ ! -s "target/$WAR_FILE" ]; then
-                        echo "ERROR: El archivo WAR está vacío."
-                        exit 1
-                    fi
+                        if [ ! -s "target/$WAR_FILE" ]; then
+                            echo "ERROR: El archivo WAR está vacío."
+                            exit 1
+                        fi
 
-                    echo "Artefacto WAR generado correctamente."
-                '''
+                        echo "Artefacto WAR generado correctamente."
+                    '''
+                }
             }
         }
 
         stage('Build Usuarios Docker Image') {
             steps {
-                sh '''
-                    set -eu
+                dir('nombre-de-tu-carpeta') {
+                    sh '''
+                        set -eu
 
-                    FULL_IMAGE_NAME="$IMAGE_NAME:$IMAGE_TAG"
+                        FULL_IMAGE_NAME="$IMAGE_NAME:$IMAGE_TAG"
 
-                    echo "Construyendo imagen Docker:"
-                    echo "$FULL_IMAGE_NAME"
+                        echo "Construyendo imagen Docker:"
+                        echo "$FULL_IMAGE_NAME"
 
-                    docker build \
-                        --pull \
-                        -t "$FULL_IMAGE_NAME" \
-                        -t "$IMAGE_NAME:latest" \
-                        .
+                        docker build \
+                            --pull \
+                            -t "$FULL_IMAGE_NAME" \
+                            -t "$IMAGE_NAME:latest" \
+                            .
 
-                    echo "Validando imagen creada..."
+                        echo "Validando imagen creada..."
 
-                    docker image inspect "$FULL_IMAGE_NAME" >/dev/null
+                        docker image inspect "$FULL_IMAGE_NAME" >/dev/null
 
-                    docker images "$IMAGE_NAME"
+                        docker images "$IMAGE_NAME"
 
-                    echo "Imagen Docker construida correctamente."
-                '''
+                        echo "Imagen Docker construida correctamente."
+                    '''
+                }
             }
         }
 
         stage('Prepare Deployment Port') {
             steps {
-                sh '''
-                    set -eu
+                    sh '''
+                        set -eu
 
-                    echo "Preparando el puerto $APP_PORT para el despliegue..."
+                        echo "Preparando el puerto $APP_PORT para el despliegue..."
 
-                    echo "Eliminando contenedor actual del proyecto si existe..."
-                    docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+                        echo "Eliminando contenedor actual del proyecto si existe..."
+                        docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 
-                    echo "Eliminando contenedor anterior conocido si existe..."
-                    docker rm -f "$LEGACY_CONTAINER_NAME" >/dev/null 2>&1 || true
+                        echo "Eliminando contenedor anterior conocido si existe..."
+                        docker rm -f "$LEGACY_CONTAINER_NAME" >/dev/null 2>&1 || true
 
-                    echo "Buscando contenedores que publiquen el puerto $APP_PORT..."
+                        echo "Buscando contenedores que publiquen el puerto $APP_PORT..."
 
-                    PORT_CONTAINERS="$(
-                        docker ps \
-                            --filter "publish=$APP_PORT" \
-                            --format '{{.Names}}' || true
-                    )"
+                        PORT_CONTAINERS="$(
+                            docker ps \
+                                --filter "publish=$APP_PORT" \
+                                --format '{{.Names}}' || true
+                        )"
 
-                    if [ -n "$PORT_CONTAINERS" ]; then
-                        echo "ERROR: El puerto $APP_PORT sigue ocupado."
-                        echo "Contenedor o contenedores detectados:"
-                        echo "$PORT_CONTAINERS"
+                        if [ -n "$PORT_CONTAINERS" ]; then
+                            echo "ERROR: El puerto $APP_PORT sigue ocupado."
+                            echo "Contenedor o contenedores detectados:"
+                            echo "$PORT_CONTAINERS"
 
-                        echo "Detalle:"
-                        docker ps \
-                            --filter "publish=$APP_PORT" \
-                            --format \
-                            'Nombre={{.Names}} | Imagen={{.Image}} | Puertos={{.Ports}}'
+                            echo "Detalle:"
+                            docker ps \
+                                --filter "publish=$APP_PORT" \
+                                --format \
+                                'Nombre={{.Names}} | Imagen={{.Image}} | Puertos={{.Ports}}'
 
-                        echo ""
-                        echo "No se eliminaron automáticamente contenedores desconocidos."
-                        echo "Revise si corresponde detenerlos o utilice otro APP_PORT."
+                            echo ""
+                            echo "No se eliminaron automáticamente contenedores desconocidos."
+                            echo "Revise si corresponde detenerlos o utilice otro APP_PORT."
 
-                        exit 1
-                    fi
-
-                    echo "Validando procesos del host que podrían utilizar el puerto..."
-
-                    if command -v ss >/dev/null 2>&1; then
-                        if ss -ltn | grep -q ":$APP_PORT "; then
-                            echo "ERROR: Un proceso del sistema está utilizando el puerto $APP_PORT."
-                            ss -ltnp | grep ":$APP_PORT " || true
                             exit 1
                         fi
-                    fi
 
-                    echo "Puerto $APP_PORT disponible."
-                '''
+                        echo "Validando procesos del host que podrían utilizar el puerto..."
+
+                        if command -v ss >/dev/null 2>&1; then
+                            if ss -ltn | grep -q ":$APP_PORT "; then
+                                echo "ERROR: Un proceso del sistema está utilizando el puerto $APP_PORT."
+                                ss -ltnp | grep ":$APP_PORT " || true
+                                exit 1
+                            fi
+                        fi
+
+                        echo "Puerto $APP_PORT disponible."
+                    '''
             }
         }
 
