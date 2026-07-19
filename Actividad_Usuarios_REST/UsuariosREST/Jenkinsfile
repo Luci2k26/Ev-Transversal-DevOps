@@ -190,7 +190,7 @@ pipeline {
 
         stage('Build Usuarios WAR Artifact') {
             steps {
-                dir('nombre-de-tu-carpeta') {
+                dir('Actividad_Usuarios_REST/UsuariosREST') {
                     sh '''
                         set -eu
 
@@ -226,7 +226,7 @@ pipeline {
 
         stage('Build Usuarios Docker Image') {
             steps {
-                dir('nombre-de-tu-carpeta') {
+                dir('Actividad_Usuarios_REST/UsuariosREST') {
                     sh '''
                         set -eu
 
