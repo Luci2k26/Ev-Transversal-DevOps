@@ -50,7 +50,7 @@ pipeline {
                 echo 'Descargando código fuente desde GitHub...'
 
                 checkout scmGit(
-                    branches: [[name: '*/main']],
+                    branches: [[name: '*/master']],
                     extensions: [
                         [$class: 'CleanBeforeCheckout']
                     ],
