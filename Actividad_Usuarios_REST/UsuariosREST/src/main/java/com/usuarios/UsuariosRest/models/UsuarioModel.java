@@ -41,10 +41,10 @@ public class UsuarioModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "firstName") // Apunta a la columna que tiene los datos
+    @Column(name = "first_name") // Cambiado de "firstName" a "first_name"
     private String firstName;
 
-    @Column(name = "lastName")  // Apunta a la columna que tiene los datos
+    @Column(name = "last_name")  // Cambiado de "lastName" a "last_name"
     private String lastName;
 
     @Column
