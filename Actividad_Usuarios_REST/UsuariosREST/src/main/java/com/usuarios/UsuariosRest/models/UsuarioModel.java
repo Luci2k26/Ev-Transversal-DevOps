@@ -1,5 +1,5 @@
 package com.usuarios.UsuariosRest.models;
-
+//prueba 10
 import jakarta.persistence.*;
 
 @Entity
